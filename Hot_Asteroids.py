@@ -72,9 +72,11 @@ class InstructionView(arcade.View):
         arcade.start_render()
         arcade.draw_text("Use the arrow keys to move", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
                          arcade.color.BLACK, font_size=20, anchor_x="center")
-        arcade.draw_text("Use spacebar to shoot", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 75,
+        arcade.draw_text("Use space bar to shoot", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 75,
                          arcade.color.BLACK, font_size=20, anchor_x="center")
         arcade.draw_text("Press Esc to continue", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 150,
+                         arcade.color.BLACK, font_size=20, anchor_x="center")
+        arcade.draw_text("Also press ESC to pause the game", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 250,
                          arcade.color.BLACK, font_size=20, anchor_x="center")
 
     def on_key_press(self, key, key_modifiers):
@@ -139,6 +141,8 @@ class GameView(arcade.View):
         # Set up the player info
         self.player_sprite = None
         self.score = 0
+        self.player_start_health = 9
+        self.survival_time = 0
 
         arcade.set_background_color(arcade.color.BLACK)
 
@@ -153,9 +157,6 @@ class GameView(arcade.View):
         self.laser_one_list = arcade.SpriteList()
         self.laser_two_list = arcade.SpriteList()
         self.all_sprites_list = arcade.SpriteList()
-
-        # Score
-        self.score = 0
 
         # Set up the Player
         self.player_sprite = arcade.Sprite("art\ship.png", SPRITE_SCALING_PLAYER)
@@ -195,6 +196,9 @@ class GameView(arcade.View):
         output = f"Score: {self.score}"
         arcade.draw_text(output, 10, SCREEN_HEIGHT - 20, arcade.color.WHITE, 14)
 
+        # Put player health on the screen
+        player_health = f"Health: {self.player_start_health}"
+        arcade.draw_text(player_health, 10, SCREEN_HEIGHT - 40, arcade.color.WHITE, 14)
 
     def on_key_press(self, key, key_modifiers):
         """
@@ -247,6 +251,7 @@ class GameView(arcade.View):
             self.player_sprite.change_x = 0
 
     def update(self, delta_time):
+        self.survival_time += delta_time
         """
         All the logic to move, and the game logic goes here.
         Normally, you'll call update() on the sprite lists that
@@ -266,11 +271,12 @@ class GameView(arcade.View):
         # Generate a list of all sprites that collided with the player
         asteroids_crash_list = arcade.check_for_collision_with_list(self.player_sprite, self.asteroid_list)
 
-        # loop through each colliding sprite, remove it, and add it to the score
+        # loop through each colliding sprite, remove it, and subtract from player health
         for asteroid in asteroids_crash_list:
             asteroid.center_y = random.randint(SCREEN_HEIGHT + 50, 1250)
             asteroid.center_x = random.randrange(SCREEN_WIDTH)
-            self.score -= 1
+            self.score -= 3
+            self.player_start_health -= 1
 
         for laser in self.laser_one_list:
 
@@ -348,6 +354,44 @@ class GameView(arcade.View):
                 laser.remove_from_sprite_lists()
                 laser.kill()
 
+        if self.player_start_health == 0:
+            game_over_view = GameOver()
+            game_over_view.survival_time = self.survival_time
+            game_over_view.score = self.score
+            self.window.set_mouse_visible(True)
+            self.window.show_view(game_over_view)
+
+class GameOver(arcade.View):
+    def __init__(self):
+        super().__init__()
+        self.survival_time = 0
+        self.score = 0
+
+    def on_show(self):
+        arcade.set_background_color(arcade.color.BLACK)
+
+    def on_draw(self):
+        arcade.start_render()
+        # Put game over across the screen
+        arcade.draw_text("GAME OVER", SCREEN_WIDTH / 2.75, SCREEN_HEIGHT - 300, arcade.color.WHITE, font_size = 36)
+        arcade.draw_text("Press enter to restart", SCREEN_WIDTH / 2.85, SCREEN_HEIGHT - 350, arcade.color.WHITE,
+                         font_size = 24)
+
+        time_taken_formatted = f"{round(self.survival_time, 2)} seconds"
+        arcade.draw_text(f"Time Survived: {time_taken_formatted}",
+                         SCREEN_WIDTH/2, SCREEN_HEIGHT - 400,
+                         arcade.color.BLUE_BELL,font_size=15, anchor_x="center")
+
+        output_total = f"Total Score: {self.score}"
+        arcade.draw_text(output_total,
+                         SCREEN_WIDTH / 2, SCREEN_HEIGHT - 450,
+                         arcade.color.BLUE_BELL, font_size=15, anchor_x="center")
+
+    def on_key_press(self, key, _modifiers):
+        # Resume the game
+        if key == arcade.key.ENTER:
+            game = GameView()
+            self.window.show_view(game)
 
 def main():
     """ Main method """
