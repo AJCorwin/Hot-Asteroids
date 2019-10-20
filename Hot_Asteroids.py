@@ -146,7 +146,7 @@ class GameView(arcade.View):
         self.player_start_health = 9
         self.survival_time = 0
         self.static_life_gain = 10
-        self.player_name = "Baller_Crawler"
+        self.player_name = "Player_One"
 
         arcade.set_background_color(arcade.color.BLACK)
 
@@ -173,10 +173,10 @@ class GameView(arcade.View):
         # Create the Asteroids
         for i in range(self.new_asteroid):
             # Create a random float size for the asteroid scale
-            asteroid_Scale = (random.randint(35, 100) / 100)
+            asteroid_scale = (random.randint(8, 25) / 100)
 
             # Create the asteroid instance
-            asteroid = Asteroid("art\meteorBrown.png", asteroid_Scale)
+            asteroid = Asteroid("art\meteorBrown.png", asteroid_scale)
 
             # Position the asteroid
             asteroid.center_x = random.randrange(SCREEN_WIDTH)
@@ -313,10 +313,10 @@ class GameView(arcade.View):
 
                 for i in range(self.new_asteroid - len(self.asteroid_list)):
                     # Create a random float size for the asteroid scale
-                    asteroid_Scale = (random.randint(35, 100) / 100)
+                    asteroid_scale = (random.randint(8, 25) / 100)
 
                     # Create the asteroid instance
-                    asteroid = Asteroid("art\meteorBrown.png", asteroid_Scale)
+                    asteroid = Asteroid("art\meteorBrown.png", asteroid_scale)
 
                     # Position the asteroid
                     asteroid.center_x = random.randrange(SCREEN_WIDTH)
@@ -351,10 +351,10 @@ class GameView(arcade.View):
 
                 for i in range(self.new_asteroid - len(self.asteroid_list)):
                     # Create a random float size for the asteroid scale
-                    asteroid_Scale = (random.randint(35, 100) / 100)
+                    asteroid_scale = (random.randint(8, 25) / 100)
 
                     # Create the asteroid instance
-                    asteroid = Asteroid("art\meteorBrown.png", asteroid_Scale)
+                    asteroid = Asteroid("art\meteorBrown.png", asteroid_scale)
 
                     # Position the asteroid
                     asteroid.center_x = random.randrange(SCREEN_WIDTH)
@@ -373,7 +373,7 @@ class GameView(arcade.View):
             game_over_view.survival_time = self.survival_time
             game_over_view.score = self.score
             game_over_view.player_name = self.player_name
-            game_over_view.save_score()
+            #game_over_view.save_score()
             self.window.set_mouse_visible(True)
             self.window.show_view(game_over_view)
 
@@ -406,11 +406,13 @@ class GameOver(arcade.View):
                          SCREEN_WIDTH / 2, SCREEN_HEIGHT - 450,
                          arcade.color.BLUE_BELL, font_size=15, anchor_x="center")
 
-    def save_score(self):
-        df = pd.read_csv('Hot-Asteroids-Leaders.csv', encoding='utf-8')
-        df2 = {'Player_Name': self.player_name, 'Score': self.score}
-        df = df.append(df2, ignore_index=True)
-        df.to_csv('Hot-Asteroids-Leaders.csv', encoding='utf-8', index=False)
+    #def save_score(self):
+        # Commenting out leaderboard until new main menu gui is up w/ player names.
+
+        #df = pd.read_csv('Hot-Asteroids-Leaders.csv', encoding='utf-8')
+        #df2 = {'Player_Name': self.player_name, 'Score': self.score}
+        #df = df.append(df2, ignore_index=True)
+        #df.to_csv('Hot-Asteroids-Leaders.csv', encoding='utf-8', index=False)
 
     def on_key_press(self, key, _modifiers):
         # Resume the game

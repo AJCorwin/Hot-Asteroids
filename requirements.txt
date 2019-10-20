@@ -1,0 +1,34 @@
+#### ESSENTIAL LIBRARIES FOR MAIN FUNCTIONALITY ####
+To play the game:
+Python Arcade has a great walkthrough on both installing Python and the required Arcade library.
+Below will be the link for the install page. 
+
+Windows: Note for windows you do not need the 'install Pycharm and Virtual Environment' steps so skip this portion.
+Complete step 1: Install Python and then move on to step 2 process called 'Install Arcade System-Wide'. 
+http://arcade.academy/installation_windows.html
+
+Mac:
+http://arcade.academy/installation_mac.html
+
+Linux:
+http://arcade.academy/installation_linux.html
+
+
+
+
+Explosion sound from: 
+https://freesound.org/people/Sergenious/sounds/55819/
+
+Ship and Asteroid from:
+https://kenney.nl/assets/space-shooter-extension
+
+laser from: 
+https://kenney.nl/assets/space-shooter-redux
+
+Laser and start up sound from:
+https://kenney.nl/assets/digital-audio
+
+
+
+# Arcade is requred for playing the game.
+arcade
