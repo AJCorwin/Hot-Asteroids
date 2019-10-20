@@ -1,5 +1,6 @@
 import arcade
 import random
+import math
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -9,7 +10,7 @@ MOVEMENT_SPEED = 5
 # --- Constants ---
 SPRITE_SCALING_PLAYER = 0.5
 SPRITE_SCALING_ASTEROID = .5
-ASTEROID_COUNT = 75
+#ASTEROID_COUNT = 75
 SPRITE_SCALING_LASER = 1
 LASER_SPEED = 5
 
@@ -143,6 +144,7 @@ class GameView(arcade.View):
         self.score = 0
         self.player_start_health = 9
         self.survival_time = 0
+        self.static_life_gain = 10
 
         arcade.set_background_color(arcade.color.BLACK)
 
@@ -164,8 +166,10 @@ class GameView(arcade.View):
         self.player_sprite.center_y = 50
         self.player_list.append(self.player_sprite)
 
+        self.ASTEROID_COUNT = 50
+        self.new_asteroid = self.ASTEROID_COUNT
         # Create the Asteroids
-        for i in range(ASTEROID_COUNT):
+        for i in range(self.new_asteroid):
             # Create a random float size for the asteroid scale
             asteroid_Scale = (random.randint(35, 100) / 100)
 
@@ -252,6 +256,11 @@ class GameView(arcade.View):
 
     def update(self, delta_time):
         self.survival_time += delta_time
+        #Game difficulty setting
+        #self.asteroid_mod = round(math.sqrt(self.score))
+        self.asteroid_mod = self.score
+        self.new_asteroid = self.ASTEROID_COUNT + self.asteroid_mod
+
         """
         All the logic to move, and the game logic goes here.
         Normally, you'll call update() on the sprite lists that
@@ -296,8 +305,12 @@ class GameView(arcade.View):
                 asteroid.remove_from_sprite_lists()
                 self.score += 1
                 arcade.sound.play_sound(self.explosion_sound)
+                self.static_life_gain -= 1
+                if self.static_life_gain == 0:
+                    self.player_start_health += 1
+                    self.static_life_gain = 10
 
-                for i in range(ASTEROID_COUNT - len(self.asteroid_list)):
+                for i in range(self.new_asteroid - len(self.asteroid_list)):
                     # Create a random float size for the asteroid scale
                     asteroid_Scale = (random.randint(35, 100) / 100)
 
@@ -335,7 +348,7 @@ class GameView(arcade.View):
                 self.score += 1
                 arcade.sound.play_sound(self.explosion_sound)
 
-                for i in range(ASTEROID_COUNT - len(self.asteroid_list)):
+                for i in range(self.new_asteroid - len(self.asteroid_list)):
                     # Create a random float size for the asteroid scale
                     asteroid_Scale = (random.randint(35, 100) / 100)
 
