@@ -16,7 +16,7 @@ LASER_SPEED = 5
 
 class Character(arcade.Sprite):
     def __init__(self, position_x, position_y, change_x, change_y, radius, color):
-        self.name = ""
+        self.player_name = ""
         self.shipcolor = "Blue"
         self.max_hit_points = 0
         self.current_hit_points = 0
@@ -28,20 +28,6 @@ class Character(arcade.Sprite):
         self.change_x = change_x
         self.change_y = change_y
         self.color = color
-
-    def update(self):
-        self.center_x += self.change_x
-        self.center_y += self.change_y
-
-        if self.left < 0:
-            self.left = 0
-        elif self.right > SCREEN_WIDTH - 1:
-            self.right = SCREEN_WIDTH - 1
-
-        if self.bottom < 0:
-            self.bottom = 0
-        elif self.top > SCREEN_HEIGHT - 1:
-            self.top = SCREEN_HEIGHT - 1
 
 
 class Asteroid(arcade.Sprite):
@@ -69,7 +55,7 @@ class MenuView(arcade.View):
         arcade.start_render()
         arcade.draw_text("Main Menu", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
                          arcade.color.FOREST_GREEN, font_size=50, anchor_x="center")
-        arcade.draw_text("Press Esc to continue", SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2)-75,
+        arcade.draw_text("Press Esc to continue", SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) - 75,
                          arcade.color.BLACK, font_size=20, anchor_x="center")
 
     def on_key_press(self, key, key_modifiers):
@@ -90,10 +76,53 @@ class InstructionView(arcade.View):
                          arcade.color.BLACK, font_size=20, anchor_x="center")
         arcade.draw_text("Press Esc to continue", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 150,
                          arcade.color.BLACK, font_size=20, anchor_x="center")
+
     def on_key_press(self, key, key_modifiers):
         if key == arcade.key.ESCAPE:
             game_view = GameView()
             self.window.show_view(game_view)
+
+
+class PauseView(arcade.View):
+    def __init__(self, game_view):
+        super().__init__()
+        self.game_view = game_view
+
+    def on_show(self):
+        arcade.set_background_color(arcade.color.FOREST_GREEN)
+
+    def on_draw(self):
+        arcade.start_render()
+
+        # Draw player so they will know their current placement if they unpause
+        player_sprite = self.game_view.player_sprite
+        player_sprite.draw()
+
+        # draw an green filter over him
+        arcade.draw_lrtb_rectangle_filled(left=player_sprite.left, right=player_sprite.right,
+                                          top=player_sprite.top, bottom=player_sprite.bottom,
+                                          color=arcade.color.FOREST_GREEN + (200,))
+
+        arcade.draw_text("PAUSED", SCREEN_WIDTH/2, SCREEN_HEIGHT/2+50,
+                         arcade.color.BLACK, font_size=50, anchor_x="center")
+
+        # Show tip to return or reset
+        arcade.draw_text("Press Esc. to return",
+                         SCREEN_WIDTH/2, SCREEN_HEIGHT/2,
+                         arcade.color.BLACK, font_size=20, anchor_x="center")
+        arcade.draw_text("Press Enter to reset",
+                         SCREEN_WIDTH/2, SCREEN_HEIGHT/2-30,
+                         arcade.color.BLACK, font_size=20, anchor_x="center")
+
+    def on_key_press(self, key, _modifiers):
+        # Resume the game
+        if key == arcade.key.ESCAPE:
+            arcade.set_background_color(arcade.color.BLACK)
+            self.window.show_view(self.game_view)
+        # Restart the game (level)
+        elif key == arcade.key.ENTER:
+            game = GameView()
+            self.window.show_view(game)
 
 
 class GameView(arcade.View):
@@ -166,6 +195,7 @@ class GameView(arcade.View):
         output = f"Score: {self.score}"
         arcade.draw_text(output, 10, SCREEN_HEIGHT - 20, arcade.color.WHITE, 14)
 
+
     def on_key_press(self, key, key_modifiers):
         """
         Calls whenever a key on the keyboard is pressed.
@@ -201,6 +231,12 @@ class GameView(arcade.View):
             self.laser_one_list.append(laser_one)
             self.laser_two_list.append(laser_two)
 
+
+        if key == arcade.key.ESCAPE:
+            # pass self, the current view, to preserve this views state?
+            pause = PauseView(self)
+            self.window.show_view(pause)
+
     def on_key_release(self, key, key_modifiers):
         """
         Called whenever the user lets off a previously pressed key.
@@ -220,6 +256,12 @@ class GameView(arcade.View):
         self.asteroid_list.update()
         self.laser_one_list.update()
         self.laser_two_list.update()
+
+        # prevent player from going out of bounds
+        if self.player_sprite.left < 0 or self.player_sprite.right > SCREEN_WIDTH:
+            self.player_sprite.change_x = 0
+        if self.player_sprite.bottom < 0 or self.player_sprite.top > SCREEN_HEIGHT:
+            self.player_sprite.change_y = 0
 
         # Generate a list of all sprites that collided with the player
         asteroids_crash_list = arcade.check_for_collision_with_list(self.player_sprite, self.asteroid_list)
@@ -313,10 +355,6 @@ def main():
     menu_view = MenuView()
     window.show_view(menu_view)
     arcade.run()
-
-    # game.setup()
-    # arcade.run()
-
 
 if __name__ == "__main__":
     main()
