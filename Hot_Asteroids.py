@@ -1,6 +1,8 @@
 import arcade
 import random
 import math
+import pandas as pd
+import numpy as np
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -10,14 +12,13 @@ MOVEMENT_SPEED = 5
 # --- Constants ---
 SPRITE_SCALING_PLAYER = 0.5
 SPRITE_SCALING_ASTEROID = .5
-#ASTEROID_COUNT = 75
 SPRITE_SCALING_LASER = 1
 LASER_SPEED = 5
 
 
 class Character(arcade.Sprite):
     def __init__(self, position_x, position_y, change_x, change_y, radius, color):
-        self.player_name = ""
+        self.player_name = "Baller_Crawler"
         self.shipcolor = "Blue"
         self.max_hit_points = 0
         self.current_hit_points = 0
@@ -106,15 +107,15 @@ class PauseView(arcade.View):
                                           top=player_sprite.top, bottom=player_sprite.bottom,
                                           color=arcade.color.FOREST_GREEN + (200,))
 
-        arcade.draw_text("PAUSED", SCREEN_WIDTH/2, SCREEN_HEIGHT/2+50,
+        arcade.draw_text("PAUSED", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 50,
                          arcade.color.BLACK, font_size=50, anchor_x="center")
 
         # Show tip to return or reset
         arcade.draw_text("Press Esc. to return",
-                         SCREEN_WIDTH/2, SCREEN_HEIGHT/2,
+                         SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
                          arcade.color.BLACK, font_size=20, anchor_x="center")
         arcade.draw_text("Press Enter to reset",
-                         SCREEN_WIDTH/2, SCREEN_HEIGHT/2-30,
+                         SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 30,
                          arcade.color.BLACK, font_size=20, anchor_x="center")
 
     def on_key_press(self, key, _modifiers):
@@ -145,6 +146,7 @@ class GameView(arcade.View):
         self.player_start_health = 9
         self.survival_time = 0
         self.static_life_gain = 10
+        self.player_name = "Baller_Crawler"
 
         arcade.set_background_color(arcade.color.BLACK)
 
@@ -239,7 +241,6 @@ class GameView(arcade.View):
             self.laser_one_list.append(laser_one)
             self.laser_two_list.append(laser_two)
 
-
         if key == arcade.key.ESCAPE:
             # pass self, the current view, to preserve this views state?
             pause = PauseView(self)
@@ -256,8 +257,8 @@ class GameView(arcade.View):
 
     def update(self, delta_time):
         self.survival_time += delta_time
-        #Game difficulty setting
-        #self.asteroid_mod = round(math.sqrt(self.score))
+        # Game difficulty setting
+        # self.asteroid_mod = round(math.sqrt(self.score))
         self.asteroid_mod = self.score
         self.new_asteroid = self.ASTEROID_COUNT + self.asteroid_mod
 
@@ -371,34 +372,45 @@ class GameView(arcade.View):
             game_over_view = GameOver()
             game_over_view.survival_time = self.survival_time
             game_over_view.score = self.score
+            game_over_view.player_name = self.player_name
+            game_over_view.save_score()
             self.window.set_mouse_visible(True)
             self.window.show_view(game_over_view)
+
 
 class GameOver(arcade.View):
     def __init__(self):
         super().__init__()
         self.survival_time = 0
         self.score = 0
+        self.player_name = ""
 
     def on_show(self):
         arcade.set_background_color(arcade.color.BLACK)
 
+
     def on_draw(self):
         arcade.start_render()
         # Put game over across the screen
-        arcade.draw_text("GAME OVER", SCREEN_WIDTH / 2.75, SCREEN_HEIGHT - 300, arcade.color.WHITE, font_size = 36)
+        arcade.draw_text("GAME OVER", SCREEN_WIDTH / 2.75, SCREEN_HEIGHT - 300, arcade.color.WHITE, font_size=36)
         arcade.draw_text("Press enter to restart", SCREEN_WIDTH / 2.85, SCREEN_HEIGHT - 350, arcade.color.WHITE,
-                         font_size = 24)
+                         font_size=24)
 
         time_taken_formatted = f"{round(self.survival_time, 2)} seconds"
         arcade.draw_text(f"Time Survived: {time_taken_formatted}",
-                         SCREEN_WIDTH/2, SCREEN_HEIGHT - 400,
-                         arcade.color.BLUE_BELL,font_size=15, anchor_x="center")
+                         SCREEN_WIDTH / 2, SCREEN_HEIGHT - 400,
+                         arcade.color.BLUE_BELL, font_size=15, anchor_x="center")
 
         output_total = f"Total Score: {self.score}"
         arcade.draw_text(output_total,
                          SCREEN_WIDTH / 2, SCREEN_HEIGHT - 450,
                          arcade.color.BLUE_BELL, font_size=15, anchor_x="center")
+
+    def save_score(self):
+        df = pd.read_csv('Hot-Asteroids-Leaders.csv', encoding='utf-8')
+        df2 = {'Player_Name': self.player_name, 'Score': self.score}
+        df = df.append(df2, ignore_index=True)
+        df.to_csv('Hot-Asteroids-Leaders.csv', encoding='utf-8', index=False)
 
     def on_key_press(self, key, _modifiers):
         # Resume the game
@@ -406,12 +418,14 @@ class GameOver(arcade.View):
             game = GameView()
             self.window.show_view(game)
 
+
 def main():
     """ Main method """
     window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
     menu_view = MenuView()
     window.show_view(menu_view)
     arcade.run()
+
 
 if __name__ == "__main__":
     main()
