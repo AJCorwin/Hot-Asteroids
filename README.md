@@ -4,5 +4,5 @@ This is a game I made on a 12 hour challenge to myself.
 
 I completed the basic version in a little under 7 hours.
 
-[![Video preview](https://youtu.be/_c1Yr5j_BMg)](https://youtu.be/_c1Yr5j_BMg)
+![](/art/Hot_Asteroids-Play-1.gif?raw=true)
 ![Alt text](/art/Hot_Asteroids-Screen-1.png?raw=true)
