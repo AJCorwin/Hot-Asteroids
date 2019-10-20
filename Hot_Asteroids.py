@@ -51,19 +51,61 @@ class Asteroid(arcade.Sprite):
 
         # make the asteroids reappear once off screen
         if self.center_y < -random.randint(50, 250):
-            self.center_y = SCREEN_HEIGHT+20
+            self.center_y = SCREEN_HEIGHT + 20
             self.center_x = random.randrange(SCREEN_WIDTH)
 
 
-class MyGame(arcade.Window):
-    def __init__(self, width, height, title):
-        super().__init__(width, height, title)
+'''
+A pause screen and start up screen are two separate classes. These must be created separately
+
+'''
+
+
+class MenuView(arcade.View):
+    def on_show(self):
+        arcade.set_background_color(arcade.color.IMPERIAL_PURPLE)
+
+    def on_draw(self):
+        arcade.start_render()
+        arcade.draw_text("Main Menu", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
+                         arcade.color.FOREST_GREEN, font_size=50, anchor_x="center")
+        arcade.draw_text("Press Esc to continue", SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2)-75,
+                         arcade.color.BLACK, font_size=20, anchor_x="center")
+
+    def on_key_press(self, key, key_modifiers):
+        if key == arcade.key.ESCAPE:
+            instructions_view = InstructionView()
+            self.window.show_view(instructions_view)
+
+
+class InstructionView(arcade.View):
+    def on_show(self):
+        arcade.set_background_color(arcade.color.FOREST_GREEN)
+
+    def on_draw(self):
+        arcade.start_render()
+        arcade.draw_text("Use the arrow keys to move", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
+                         arcade.color.BLACK, font_size=20, anchor_x="center")
+        arcade.draw_text("Use spacebar to shoot", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 75,
+                         arcade.color.BLACK, font_size=20, anchor_x="center")
+        arcade.draw_text("Press Esc to continue", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 150,
+                         arcade.color.BLACK, font_size=20, anchor_x="center")
+    def on_key_press(self, key, key_modifiers):
+        if key == arcade.key.ESCAPE:
+            game_view = GameView()
+            self.window.show_view(game_view)
+
+
+class GameView(arcade.View):
+    def __init__(self):
+        super().__init__()
 
         # Variables that will hold sprite lists.
         self.player_list = None
         self.asteroid_list = None
         self.laser_one_list = None
         self.laser_two_list = None
+        self.all_sprites_list = None
 
         # Set up the player info
         self.player_sprite = None
@@ -71,20 +113,17 @@ class MyGame(arcade.Window):
 
         arcade.set_background_color(arcade.color.BLACK)
 
-
         self.laser_sound = arcade.sound.load_sound("sounds/laser3.ogg")
         self.start_up_sound = arcade.sound.load_sound("sounds/lowThreeTone.ogg")
         self.explosion_sound = arcade.sound.load_sound("sounds/explosion.wav")
         arcade.sound.play_sound(self.start_up_sound)
-
-
-    def setup(self):
 
         # Sprite List
         self.player_list = arcade.SpriteList()
         self.asteroid_list = arcade.SpriteList()
         self.laser_one_list = arcade.SpriteList()
         self.laser_two_list = arcade.SpriteList()
+        self.all_sprites_list = arcade.SpriteList()
 
         # Score
         self.score = 0
@@ -95,21 +134,17 @@ class MyGame(arcade.Window):
         self.player_sprite.center_y = 50
         self.player_list.append(self.player_sprite)
 
-
-
         # Create the Asteroids
         for i in range(ASTEROID_COUNT):
-
             # Create a random float size for the asteroid scale
-            Asteroid_Scale = (random.randint(35, 100) / 100)
+            asteroid_Scale = (random.randint(35, 100) / 100)
 
             # Create the asteroid instance
-            asteroid = Asteroid("art\meteorBrown.png", Asteroid_Scale)
-
+            asteroid = Asteroid("art\meteorBrown.png", asteroid_Scale)
 
             # Position the asteroid
             asteroid.center_x = random.randrange(SCREEN_WIDTH)
-            asteroid.center_y = random.randint(SCREEN_HEIGHT+50,1250)
+            asteroid.center_y = random.randint(SCREEN_HEIGHT + 50, 1250)
 
             # Add the asteroid to the lists
             self.asteroid_list.append(asteroid)
@@ -129,7 +164,7 @@ class MyGame(arcade.Window):
 
         # Putting the Score on screen
         output = f"Score: {self.score}"
-        arcade.draw_text(output, 10, SCREEN_HEIGHT-20, arcade.color.WHITE, 14)
+        arcade.draw_text(output, 10, SCREEN_HEIGHT - 20, arcade.color.WHITE, 14)
 
     def on_key_press(self, key, key_modifiers):
         """
@@ -165,8 +200,6 @@ class MyGame(arcade.Window):
 
             self.laser_one_list.append(laser_one)
             self.laser_two_list.append(laser_two)
-            self.all_sprites_list.append(laser_one) # add laser_two back
-
 
     def on_key_release(self, key, key_modifiers):
         """
@@ -176,7 +209,6 @@ class MyGame(arcade.Window):
             self.player_sprite.change_y = 0
         elif key == arcade.key.LEFT or key == arcade.key.RIGHT:
             self.player_sprite.change_x = 0
-
 
     def update(self, delta_time):
         """
@@ -194,7 +226,7 @@ class MyGame(arcade.Window):
 
         # loop through each colliding sprite, remove it, and add it to the score
         for asteroid in asteroids_crash_list:
-            asteroid.center_y = random.randint(SCREEN_HEIGHT+50,1250)
+            asteroid.center_y = random.randint(SCREEN_HEIGHT + 50, 1250)
             asteroid.center_x = random.randrange(SCREEN_WIDTH)
             self.score -= 1
 
@@ -217,12 +249,12 @@ class MyGame(arcade.Window):
                 self.score += 1
                 arcade.sound.play_sound(self.explosion_sound)
 
-                for i in range(ASTEROID_COUNT-len(self.asteroid_list)):
+                for i in range(ASTEROID_COUNT - len(self.asteroid_list)):
                     # Create a random float size for the asteroid scale
-                    Asteroid_Scale = (random.randint(35, 100) / 100)
+                    asteroid_Scale = (random.randint(35, 100) / 100)
 
                     # Create the asteroid instance
-                    asteroid = Asteroid("art\meteorBrown.png", Asteroid_Scale)
+                    asteroid = Asteroid("art\meteorBrown.png", asteroid_Scale)
 
                     # Position the asteroid
                     asteroid.center_x = random.randrange(SCREEN_WIDTH)
@@ -230,7 +262,6 @@ class MyGame(arcade.Window):
 
                     # Add the asteroid to the lists
                     self.asteroid_list.append(asteroid)
-
 
             # if the laser flies off screen remove it
             if laser.bottom > SCREEN_HEIGHT + 30:
@@ -256,12 +287,12 @@ class MyGame(arcade.Window):
                 self.score += 1
                 arcade.sound.play_sound(self.explosion_sound)
 
-                for i in range(ASTEROID_COUNT-len(self.asteroid_list)):
+                for i in range(ASTEROID_COUNT - len(self.asteroid_list)):
                     # Create a random float size for the asteroid scale
-                    Asteroid_Scale = (random.randint(35, 100) / 100)
+                    asteroid_Scale = (random.randint(35, 100) / 100)
 
                     # Create the asteroid instance
-                    asteroid = Asteroid("art\meteorBrown.png", Asteroid_Scale)
+                    asteroid = Asteroid("art\meteorBrown.png", asteroid_Scale)
 
                     # Position the asteroid
                     asteroid.center_x = random.randrange(SCREEN_WIDTH)
@@ -275,11 +306,16 @@ class MyGame(arcade.Window):
                 laser.remove_from_sprite_lists()
                 laser.kill()
 
+
 def main():
     """ Main method """
-    game = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-    game.setup()
+    window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+    menu_view = MenuView()
+    window.show_view(menu_view)
     arcade.run()
+
+    # game.setup()
+    # arcade.run()
 
 
 if __name__ == "__main__":
